@@ -175,6 +175,36 @@ This updates `~/.claude/settings.json` to redirect all Claude Code requests to Z
 zai-cli setup --unset
 ```
 
+### For Codex specifically
+
+**Environment Setup:**
+Codex requires explicit environment variable configuration since it runs in its own environment:
+
+```bash
+# Create the Codex environment file if it doesn't exist
+mkdir -p ~/codex
+
+# Add your Z.AI API key
+echo 'Z_AI_API_KEY="your-api-key"' > ~/codex/.env
+```
+
+**Why this is needed:**
+- Codex executes commands in an isolated environment (`~/codex`)
+- The `.env` file ensures `Z_AI_API_KEY` is available when Codex invokes `zai-cli`
+- Without this, `zai-cli` will fail with "Z_AI_API_KEY is required"
+
+**To verify:**
+```bash
+# Check that the .env file exists and contains the key
+cat ~/codex/.env
+
+# Test that Codex can access zai-cli
+cd ~/codex && zai-cli doctor
+```
+
+**Usage:**
+Once configured, Codex can invoke all `zai-cli` commands using the examples from the "Direct CLI Invocation" section above.
+
 ## Environment Variables
 
 | Variable | Required | Default | Description |

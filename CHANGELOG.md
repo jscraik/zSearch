@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Setup command** for Claude Code integration via environment variables
+- **Codex environment setup documentation** with ~/codex/.env configuration
 - **Z.AI branding** with official logo in README
 - **Agent integration documentation** for Claude Code, Codex, and other agents
 - **Dual integration mode:** Model Replacement + Direct CLI Tool Invocation
