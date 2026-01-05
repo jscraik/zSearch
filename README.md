@@ -181,17 +181,23 @@ zai-cli setup --unset
 Codex requires explicit environment variable configuration since it runs in its own environment:
 
 ```bash
-# Create the Codex environment file if it doesn't exist
+# 1. Create the Codex environment file if it doesn't exist
 mkdir -p ~/codex
 
-# Add your Z.AI API key
+# 2. Add your Z.AI API key
 echo 'Z_AI_API_KEY="your-api-key"' > ~/codex/.env
+
+# 3. Ensure Z_AI_API_KEY is in Codex's environment allowlist
+# In ~/codex/config.toml, verify the allowlist includes:
+# [agent]
+# env_allowlist = ["Z_AI_API_KEY", ...]
 ```
 
 **Why this is needed:**
 - Codex executes commands in an isolated environment (`~/codex`)
-- The `.env` file ensures `Z_AI_API_KEY` is available when Codex invokes `zai-cli`
-- Without this, `zai-cli` will fail with "Z_AI_API_KEY is required"
+- The `.env` file provides the API key value
+- The `config.toml` allowlist explicitly permits `Z_AI_API_KEY` to be passed to subprocesses
+- Without both, `zai-cli` will fail with "Z_AI_API_KEY is required"
 
 **To verify:**
 ```bash
