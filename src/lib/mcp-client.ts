@@ -20,6 +20,10 @@ interface McpServerConfig {
 
 /**
  * Get the server config for a given server type
+ * @param serverType - Type of MCP server to connect to
+ * @param apiKey - Z.AI API key for authentication
+ * @returns Server configuration with command, args, and environment
+ * @throws Error if server type is HTTP-based (not stdio)
  */
 function getServerConfig(serverType: McpServerType, apiKey: string): McpServerConfig {
   const baseEnv = {
@@ -50,6 +54,7 @@ function getServerConfig(serverType: McpServerType, apiKey: string): McpServerCo
 
 /**
  * MCP Client wrapper class
+ * Manages connection and communication with MCP servers via stdio
  */
 export class McpClientWrapper {
   private client: Client | null = null;
@@ -58,6 +63,9 @@ export class McpClientWrapper {
 
   /**
    * Connect to an MCP server via stdio
+   * @param serverType - Type of MCP server to connect to
+   * @param apiKey - Z.AI API key for authentication
+   * @throws Error if server type is HTTP-based (not stdio)
    */
   async connect(serverType: McpServerType, apiKey: string): Promise<void> {
     const config = getServerConfig(serverType, apiKey);
@@ -83,7 +91,8 @@ export class McpClientWrapper {
   }
 
   /**
-   * Check if connected
+   * Check if currently connected to an MCP server
+   * @returns true if connected, false otherwise
    */
   isConnected(): boolean {
     return this.connected;
@@ -91,6 +100,8 @@ export class McpClientWrapper {
 
   /**
    * List available tools from the connected server
+   * @returns Array of available tool descriptors
+   * @throws Error if not connected to MCP server
    */
   async listTools(): Promise<McpTool[]> {
     if (!this.client || !this.connected) {
@@ -107,6 +118,10 @@ export class McpClientWrapper {
 
   /**
    * Call a tool on the connected server
+   * @param name - Name of the tool to call
+   * @param args - Arguments to pass to the tool
+   * @returns Tool call result with content and error status
+   * @throws Error if not connected to MCP server
    */
   async callTool(name: string, args: Record<string, unknown>): Promise<McpToolResult> {
     if (!this.client || !this.connected) {
@@ -125,7 +140,7 @@ export class McpClientWrapper {
   }
 
   /**
-   * Disconnect from the server
+   * Disconnect from the MCP server and clean up resources
    */
   async disconnect(): Promise<void> {
     if (this.transport) {
@@ -139,6 +154,9 @@ export class McpClientWrapper {
 
 /**
  * Connect to an MCP server and return a client wrapper
+ * @param serverType - Type of MCP server to connect to
+ * @param apiKey - Z.AI API key for authentication
+ * @returns Connected client wrapper ready for tool calls
  */
 export async function connectToServer(
   serverType: McpServerType,
@@ -160,6 +178,9 @@ interface HttpCallOptions {
 
 /**
  * Make an HTTP request to an HTTP-based MCP server
+ * @param options - HTTP request options including URL, headers, and body
+ * @returns Parsed JSON response
+ * @throws Error if HTTP response is not OK
  */
 export async function callHttpTool(options: HttpCallOptions): Promise<unknown> {
   const response = await fetch(options.url, {
@@ -180,6 +201,10 @@ export async function callHttpTool(options: HttpCallOptions): Promise<unknown> {
 
 /**
  * Call web search via HTTP MCP
+ * @param apiKey - Z.AI API key for authentication
+ * @param query - Search query string
+ * @param options - Optional search parameters (count, language, timeRange)
+ * @returns Search results as JSON
  */
 export async function callWebSearch(
   apiKey: string,
@@ -206,7 +231,11 @@ export async function callWebSearch(
 }
 
 /**
- * Call web reader via HTTP MCP
+ * Call web reader via HTTP MCP to fetch and parse web pages
+ * @param apiKey - Z.AI API key for authentication
+ * @param url - URL to read and parse
+ * @param options - Optional reader parameters (withImagesSummary, noGfm, retainImages)
+ * @returns Parsed page content as markdown
  */
 export async function callWebReader(
   apiKey: string,
@@ -232,7 +261,11 @@ export async function callWebReader(
 }
 
 /**
- * Call ZRead (GitHub repo search) via HTTP MCP
+ * Call ZRead (GitHub repo search and exploration) via HTTP MCP
+ * @param apiKey - Z.AI API key for authentication
+ * @param method - Either 'search_doc' or 'get_repo_structure'
+ * @param args - Method-specific arguments
+ * @returns Query results as JSON
  */
 export async function callZRead(
   apiKey: string,
@@ -253,7 +286,11 @@ export async function callZRead(
 }
 
 /**
- * Retry logic for transient failures
+ * Retry logic for transient failures with exponential backoff
+ * @param fn - Async function to retry
+ * @param retryCount - Number of retries before failing (0 = no retry)
+ * @returns Result of successful function call
+ * @throws Last error if all retries are exhausted
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,

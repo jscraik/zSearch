@@ -19,12 +19,13 @@ import { doctor } from './commands/doctor.js';
 import { vision } from './commands/vision.js';
 
 /**
- * Main program
+ * Main Commander.js program instance
  */
 const program = new Command();
 
 /**
- * Parse global options and create context
+ * Parse global options from the Commander.js program
+ * @returns Output formatting options
  */
 function getGlobalOptions(): OutputOptions {
   const opts = program.opts();
@@ -39,7 +40,9 @@ function getGlobalOptions(): OutputOptions {
 }
 
 /**
- * Set up the CLI program
+ * Set up the CLI program with configuration and commands
+ * Loads config, validates it, configures the program, adds commands, and parses arguments
+ * @throws Error if configuration fails to load
  */
 async function setup() {
   // Load configuration
@@ -80,7 +83,7 @@ async function setup() {
 }
 
 /**
- * Entry point
+ * CLI entry point - sets up the program and handles top-level errors
  */
 setup().catch((err) => {
   error(err.message, 'E_INTERNAL', err.hint);

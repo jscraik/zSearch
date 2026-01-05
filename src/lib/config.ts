@@ -17,7 +17,8 @@ export type { Config } from '../types/index.js';
 const PACKAGE_VERSION = '0.1.0';
 
 /**
- * Get XDG config directory with fallback
+ * Get XDG config directory with fallback to ~/.config
+ * @returns Path to config directory
  */
 function getXDGConfigPath(): string {
   const xdgConfig = process.env.XDG_CONFIG_HOME;
@@ -28,7 +29,9 @@ function getXDGConfigPath(): string {
 }
 
 /**
- * Get cache directory with fallback
+ * Get cache directory with fallback to ~/.cache
+ * Checks ZAI_MCP_CACHE_DIR, XDG_CACHE_HOME, then defaults
+ * @returns Path to cache directory
  */
 function getCacheDir(): string {
   const cacheEnv = process.env.ZAI_MCP_CACHE_DIR;
@@ -43,7 +46,8 @@ function getCacheDir(): string {
 }
 
 /**
- * Parse cache TTL from environment
+ * Parse cache TTL from ZAI_MCP_TOOL_CACHE_TTL_MS environment variable
+ * @returns Cache TTL in milliseconds (default: 86400000 = 24 hours)
  */
 function parseCacheTTL(): number {
   const ttlEnv = process.env.ZAI_MCP_TOOL_CACHE_TTL_MS;
@@ -57,7 +61,8 @@ function parseCacheTTL(): number {
 }
 
 /**
- * Parse timeout from environment
+ * Parse request timeout from Z_AI_TIMEOUT environment variable
+ * @returns Timeout in milliseconds (default: 30000 = 30 seconds)
  */
 function parseTimeout(): number {
   const timeoutEnv = process.env.Z_AI_TIMEOUT;
@@ -71,7 +76,8 @@ function parseTimeout(): number {
 }
 
 /**
- * Parse retry counts from environment
+ * Parse retry configuration from environment variables
+ * @returns Retry configuration with vision and global retry counts
  */
 function parseRetryConfig(): RetryConfig {
   return {
@@ -81,7 +87,9 @@ function parseRetryConfig(): RetryConfig {
 }
 
 /**
- * Check if caching is enabled
+ * Check if tool discovery caching is enabled
+ * Checks ZAI_MCP_TOOL_CACHE environment variable
+ * @returns true if caching is enabled (default: true)
  */
 function isCacheEnabled(): boolean {
   return process.env.ZAI_MCP_TOOL_CACHE !== '0';
@@ -89,6 +97,8 @@ function isCacheEnabled(): boolean {
 
 /**
  * Read and parse a JSON config file
+ * @param path - Path to the config file
+ * @returns Parsed config object, or null if file doesn't exist or is invalid
  */
 async function readConfigFile(path: string): Promise<Record<string, unknown> | null> {
   try {
@@ -105,6 +115,7 @@ async function readConfigFile(path: string): Promise<Record<string, unknown> | n
 /**
  * Load configuration from all sources with proper precedence
  * Precedence: env > project config > user config > system config > defaults
+ * @returns Merged configuration object
  */
 export async function loadConfig(): Promise<Config> {
   // Start with defaults
@@ -169,14 +180,17 @@ export async function loadConfig(): Promise<Config> {
 }
 
 /**
- * Get the API key (returns undefined if not set)
+ * Get the API key from environment
+ * @returns API key string, or undefined if not set
  */
 export function getApiKey(): string | undefined {
   return process.env.Z_AI_API_KEY;
 }
 
 /**
- * Validate that required configuration is present
+ * Validate that required configuration is present and valid
+ * @param config - Configuration object to validate
+ * @returns Validation result with error message if invalid
  */
 export async function validateConfig(config: Config): Promise<{ valid: boolean; error?: string }> {
   if (!config.apiKey) {
@@ -198,6 +212,7 @@ export async function validateConfig(config: Config): Promise<{ valid: boolean; 
 
 /**
  * Get the package version
+ * @returns Package version string
  */
 export function getVersion(): string {
   return PACKAGE_VERSION;

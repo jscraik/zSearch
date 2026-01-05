@@ -14,12 +14,33 @@ Or use directly with npx:
 npx @brainwav/zai-cli <command>
 ```
 
+## Prerequisites
+
+- **Node.js:** >=22.0.0 (Check with `node --version`)
+- **npm:** Comes with Node.js
+- **Z.AI API Key:** Required for all commands. See below for how to get one.
+
+### Getting Your Z.AI API Key
+
+You need a Z.AI API key to use this CLI. Here's how to get one:
+
+1. Visit the [Z.AI Platform](https://z.ai)
+2. Sign up or log in to your account
+3. Navigate to Settings → API Keys
+4. Create a new API key
+5. Set the environment variable:
+
+```bash
+export Z_AI_API_KEY="your-api-key-here"
+
+# Add to ~/.bashrc or ~/.zshrc for persistence
+echo 'export Z_AI_API_KEY="your-api-key-here"' >> ~/.bashrc  # or ~/.zshrc
+source ~/.bashrc  # or ~/.zshrc
+```
+
 ## Quick Start
 
 ```bash
-# Set your API key
-export Z_AI_API_KEY="your-api-key"
-
 # Search the web
 zai-cli search "zai cli"
 
@@ -122,6 +143,81 @@ $ zai-cli search "zai cli" --json
 }
 ```
 
+## Troubleshooting
+
+### "Z_AI_API_KEY is required"
+**Symptom:** Error message stating the API key is required.
+
+**Solution:** Set the environment variable:
+```bash
+export Z_AI_API_KEY="your-api-key"
+
+# For persistence, add to your shell profile:
+echo 'export Z_AI_API_KEY="your-api-key"' >> ~/.bashrc  # or ~/.zshrc
+source ~/.bashrc  # or ~/.zshrc
+```
+
+### "Node.js version too old"
+**Symptom:** Installation or runtime fails due to Node.js version.
+
+**Solution:** Upgrade to Node.js 22 or later. Using [nvm](https://github.com/nvm-sh/nvm):
+```bash
+nvm install 22
+nvm use 22
+nvm alias default 22  # Set as default
+```
+
+Verify with: `node --version` (should show v22.x.x or higher)
+
+### "E_NETWORK: Connection timeout"
+**Symptom:** Commands timeout after 30 seconds.
+
+**Solutions:**
+1. Check your internet connection
+2. Verify Z.AI service status
+3. Increase timeout:
+```bash
+zai-cli --timeout 60000 vision analyze image.png "prompt"
+```
+Or set via environment:
+```bash
+export Z_AI_TIMEOUT=60000  # 60 seconds
+```
+
+### "E_AUTH: Authentication failure"
+**Symptom:** API key rejected or invalid.
+
+**Solutions:**
+1. Verify your API key is correct:
+```bash
+echo $Z_AI_API_KEY  # Should show your key, not empty
+```
+2. Regenerate your API key from the Z.AI dashboard
+3. Ensure the key has necessary permissions
+
+### Permission denied during global install
+**Symptom:** `npm install -g` fails with permission error.
+
+**Solutions:**
+1. Use a Node version manager like [nvm](https://github.com/nvm-sh/nvm) or [volta](https://volta.sh/)
+2. Or fix npm permissions (Linux/macOS):
+```bash
+mkdir -p ~/.npm-global
+npm config set prefix '~/.npm-global'
+echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc  # or ~/.zshrc
+source ~/.bashrc  # or ~/.zshrc
+```
+
+### Cache issues
+**Symptom:** Stale data or unexpected behavior.
+
+**Solution:** Clear the cache:
+```bash
+rm -rf ~/.cache/zai-cli
+# Or if using custom cache dir:
+rm -rf "$ZAI_MCP_CACHE_DIR"
+```
+
 ## Exit Codes
 
 | Code | Meaning |
@@ -135,11 +231,14 @@ $ zai-cli search "zai cli" --json
 | 6 | Authentication failure |
 | 130 | User abort (Ctrl-C) |
 
-## Requirements
+## Contributing
 
-- Node.js >= 22.0.0
-- `Z_AI_API_KEY` environment variable
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on development setup, testing, and the pull request process.
 
 ## License
 
 MIT
+
+---
+
+**Looking for examples?** Check out the [examples/](examples/) directory for common usage patterns.
