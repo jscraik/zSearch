@@ -84,38 +84,57 @@ export function doctor(): Command {
       // Check HTTP-based tools
       if (config.apiKey) {
         try {
-          // Try a simple search to verify API key and connectivity
-          const response = await fetch('https://api.z.ai/api/mcp/web_search_prime/mcp', {
+          // Try the main Z.AI API to verify API key and connectivity
+          const response = await fetch('https://api.z.ai/api/paas/v4/web_search', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${config.apiKey}`,
             },
             body: JSON.stringify({
-              name: 'webSearchPrime',
-              arguments: { search_query: 'test', result_count: 1 },
+              search_engine: 'search-prime',
+              search_query: 'test',
+              count: 1,
             }),
           });
 
           if (response.ok) {
             checks.push({
-              name: 'http_mcp',
+              name: 'api_access',
               status: 'pass',
-              message: 'HTTP MCP servers are reachable',
+              message: 'Z.AI API is reachable and authenticated',
             });
           } else {
-            healthy = false;
-            checks.push({
-              name: 'http_mcp',
-              status: 'fail',
-              message: `HTTP MCP request failed: ${response.status} ${response.statusText}`,
-            });
+            const errorData = await response.json().catch(() => ({ error: { message: response.statusText, code: response.status } })) as { error?: { message?: string; code?: string } };
+            // Check if it's an authentication error or balance error
+            if (response.status === 401) {
+              healthy = false;
+              checks.push({
+                name: 'api_access',
+                status: 'fail',
+                message: 'API authentication failed. Check your API key.',
+              });
+            } else if (errorData.error?.code === '1113' || response.status === 429) {
+              // Balance error is still a successful auth check
+              checks.push({
+                name: 'api_access',
+                status: 'pass',
+                message: 'API is reachable (note: insufficient balance for actual queries)',
+              });
+            } else {
+              healthy = false;
+              checks.push({
+                name: 'api_access',
+                status: 'fail',
+                message: `API request failed: ${response.status} ${errorData.error?.message || response.statusText}`,
+              });
+            }
           }
         } catch (err) {
           checks.push({
-            name: 'http_mcp',
+            name: 'api_access',
             status: 'warn',
-            message: `HTTP MCP check failed: ${err instanceof Error ? err.message : String(err)}`,
+            message: `API check failed: ${err instanceof Error ? err.message : String(err)}`,
           });
         }
       }

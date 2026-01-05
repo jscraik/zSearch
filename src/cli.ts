@@ -17,6 +17,7 @@ import { call } from './commands/call.js';
 import { code } from './commands/code.js';
 import { doctor } from './commands/doctor.js';
 import { vision } from './commands/vision.js';
+import { setup as setupCmd } from './commands/setup.js';
 
 /**
  * Main Commander.js program instance
@@ -77,6 +78,7 @@ async function setup() {
   program.addCommand(call());
   program.addCommand(code());
   program.addCommand(doctor());
+  program.addCommand(setupCmd());
 
   // Parse arguments
   await program.parseAsync(process.argv);

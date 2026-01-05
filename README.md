@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="brands/zai-logo.png" alt="Z.AI Logo" width="200"/>
+</p>
+
 # @brainwav/zai-cli
 
 Z.AI capabilities CLI for agents and automation. Access vision analysis, web search, web reading, GitHub repo exploration, and raw MCP tools.
@@ -97,9 +101,76 @@ zai-cli code eval "<expression>" # Evaluate expression
 zai-cli code interfaces          # List available interfaces
 ```
 
+### Setup
+```bash
+zai-cli setup              # Configure Z.AI for Claude Code
+zai-cli setup --list        # List current configuration
+zai-cli setup --unset      # Remove Z.AI configuration
+```
+
 ### Diagnostics
 ```bash
 zai-cli doctor [--no-vision]
+```
+
+## Agent & Tool Integration
+
+### For Claude Code, Codex, and Other Agents
+
+**Direct CLI Invocation:**
+Agents can invoke `zai-cli` commands directly via their shell/bash tools:
+
+```bash
+# Web search
+zai-cli search "query" --json
+
+# Web page reading
+zai-cli read "https://example.com" --json
+
+# Vision analysis
+zai-cli vision analyze image.png "Describe this" --json
+
+# GitHub repo exploration
+zai-cli repo tree owner/repo --json
+```
+
+**JSON Output Mode:**
+Use `--json` for machine-readable output with stable schema:
+```json
+{
+  "schema": "zai-cli.search.v1",
+  "meta": { "tool": "zai-cli", "version": "0.1.0" },
+  "status": "success",
+  "data": [...]
+}
+```
+
+### For Claude Code specifically
+
+**Model Replacement Mode:**
+Configure Claude Code to use Z.AI models instead of Anthropic:
+
+```bash
+# Set your API key
+export Z_AI_API_KEY="your-api-key"
+
+# Configure Claude Code
+zai-cli setup
+```
+
+This updates `~/.claude/settings.json` to redirect all Claude Code requests to Z.AI's Anthropic-compatible API endpoint. After restarting Claude Code, it will automatically use GLM-4.7 and GLM-4.5-air models.
+
+**Two modes work together:**
+1. **Model Replacement**: All Claude Code API calls use Z.AI models (GLM-4.7, GLM-4.5-air)
+2. **Additional Tools**: Claude Code can still invoke `zai-cli` directly for specialized capabilities like web search, vision analysis, etc.
+
+**To verify:**
+1. Restart Claude Code (run `claude` again)
+2. Run `/status` in Claude Code to see the configured models
+
+**To remove:**
+```bash
+zai-cli setup --unset
 ```
 
 ## Environment Variables

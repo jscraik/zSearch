@@ -178,111 +178,151 @@ interface HttpCallOptions {
 
 /**
  * Make an HTTP request to an HTTP-based MCP server
- * @param options - HTTP request options including URL, headers, and body
- * @returns Parsed JSON response
- * @throws Error if HTTP response is not OK
+ * Handles both plain JSON and Server-Sent Events (SSE) responses
+ * NOTE: This is currently unused since we're using the main Z.AI API endpoints
  */
 export async function callHttpTool(options: HttpCallOptions): Promise<unknown> {
+  const bodyStr = options.body ? JSON.stringify(options.body) : undefined;
+
   const response = await fetch(options.url, {
     method: options.body ? 'POST' : 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json, text/event-stream',
       ...options.headers,
     },
-    body: options.body ? JSON.stringify(options.body) : undefined,
+    body: bodyStr,
   });
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
 
-  return response.json();
+  const text = await response.text();
+
+  // Handle Server-Sent Events (SSE) format
+  if (text.includes('event:') || text.includes('data:')) {
+    // Parse SSE to extract the data field
+    const lines = text.split('\n');
+    for (const line of lines) {
+      if (line.startsWith('data:')) {
+        const data = line.slice(5).trim();
+        try {
+          const json = JSON.parse(data);
+          // JSON-RPC 2.0 responses have a 'result' field
+          if (json && typeof json === 'object' && 'result' in json) {
+            return json.result;
+          }
+          return json;
+        } catch {
+          // Not JSON, return as-is
+          return data;
+        }
+      }
+    }
+    throw new Error('No data found in SSE response');
+  }
+
+  // Handle plain JSON response
+  try {
+    const json = JSON.parse(text);
+    if (json && typeof json === 'object' && 'result' in json) {
+      return json.result;
+    }
+    return json;
+  } catch {
+    return text;
+  }
 }
 
 /**
- * Call web search via HTTP MCP
- * @param apiKey - Z.AI API key for authentication
- * @param query - Search query string
- * @param options - Optional search parameters (count, language, timeRange)
- * @returns Search results as JSON
+ * Call web search via Z.AI API
  */
 export async function callWebSearch(
   apiKey: string,
   query: string,
   options?: { count?: number; language?: string; timeRange?: string }
 ): Promise<unknown> {
-  const url = new URL('https://api.z.ai/api/mcp/web_search_prime/mcp');
+  const url = new URL('https://api.z.ai/api/paas/v4/web_search');
   const headers = {
-    Authorization: `Bearer ${apiKey}`,
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
   };
 
-  // The MCP server expects a tool call payload
+  // Map CLI options to API parameters
   const body = {
-    name: 'webSearchPrime',
-    arguments: {
-      search_query: query,
-      result_count: options?.count ?? 10,
-      ...(options?.language && { language: options.language }),
-      ...(options?.timeRange && { time_range: options.timeRange }),
-    },
+    search_engine: 'search-prime',
+    search_query: query,
+    count: options?.count ?? 10,
+    // Map timeRange to search_recency_filter
+    ...(options?.timeRange && { search_recency_filter: options.timeRange }),
   };
 
-  return callHttpTool({ url: url.toString(), headers, body });
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: response.statusText })) as { error?: { message?: string }; message?: string };
+    throw new Error(`HTTP ${response.status}: ${error.error?.message || error.message || response.statusText}`);
+  }
+
+  return response.json();
 }
 
 /**
- * Call web reader via HTTP MCP to fetch and parse web pages
- * @param apiKey - Z.AI API key for authentication
- * @param url - URL to read and parse
- * @param options - Optional reader parameters (withImagesSummary, noGfm, retainImages)
- * @returns Parsed page content as markdown
+ * Call web reader via Z.AI API
  */
 export async function callWebReader(
   apiKey: string,
   url: string,
   options?: { withImagesSummary?: boolean; noGfm?: boolean; retainImages?: boolean }
 ): Promise<unknown> {
-  const apiUrl = new URL('https://api.z.ai/api/mcp/web_reader/mcp');
+  const apiUrl = new URL('https://api.z.ai/api/paas/v4/reader');
   const headers = {
-    Authorization: `Bearer ${apiKey}`,
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
   };
 
+  // Map CLI options to API parameters
   const body = {
-    name: 'webReader',
-    arguments: {
-      url,
-      ...(options?.withImagesSummary && { with_images_summary: true }),
-      ...(options?.noGfm && { no_gfm: true }),
-      ...(options?.retainImages && { keep_img_data_url: true }),
-    },
+    url,
+    timeout: 30,
+    return_format: 'markdown',
+    retain_images: options?.retainImages ?? true,
+    no_gfm: options?.noGfm ?? false,
+    keep_img_data_url: options?.retainImages ?? false,
+    with_images_summary: options?.withImagesSummary ?? false,
   };
 
-  return callHttpTool({ url: apiUrl.toString(), headers, body });
+  const response = await fetch(apiUrl.toString(), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: response.statusText })) as { error?: { message?: string }; message?: string };
+    throw new Error(`HTTP ${response.status}: ${error.error?.message || error.message || response.statusText}`);
+  }
+
+  return response.json();
 }
 
 /**
- * Call ZRead (GitHub repo search and exploration) via HTTP MCP
- * @param apiKey - Z.AI API key for authentication
- * @param method - Either 'search_doc' or 'get_repo_structure'
- * @param args - Method-specific arguments
- * @returns Query results as JSON
+ * Call ZRead (GitHub repo search) - Not available via main API
+ * This feature requires MCP server access which may need additional setup
  */
 export async function callZRead(
-  apiKey: string,
-  method: 'search_doc' | 'get_repo_structure',
-  args: Record<string, unknown>
+  _apiKey: string,
+  _method: 'search_doc' | 'get_repo_structure',
+  _args: Record<string, unknown>
 ): Promise<unknown> {
-  const apiUrl = new URL('https://api.z.ai/api/mcp/zread/mcp');
-  const headers = {
-    Authorization: `Bearer ${apiKey}`,
-  };
-
-  const body = {
-    name: method,
-    arguments: args,
-  };
-
-  return callHttpTool({ url: apiUrl.toString(), headers, body });
+  // ZRead functionality is only available through the MCP server
+  // The main Z.AI API doesn't have a direct endpoint for GitHub repo search
+  throw new Error('ZRead (GitHub repo search) is not currently available through the direct API. This feature requires MCP server access which may need additional configuration or service plan activation.');
 }
 
 /**
