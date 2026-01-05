@@ -10,6 +10,33 @@ import { McpServerType } from '../types/index.js';
 import type { McpTool, McpToolResult } from '../types/index.js';
 
 /**
+ * Timeout for MCP server connections (ms)
+ * Prevents indefinite hangs when MCP server fails to start
+ */
+const MCP_CONNECTION_TIMEOUT = 30000; // 30 seconds
+
+/**
+ * Timeout for MCP tool calls (ms)
+ */
+const MCP_TOOL_TIMEOUT = 120000; // 2 minutes
+
+/**
+ * Wrap a promise with a timeout
+ * @param promise - Promise to wrap
+ * @param timeoutMs - Timeout in milliseconds
+ * @param operation - Description of operation for error message
+ * @returns Promise that rejects if timeout expires
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, operation: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Operation '${operation}' timed out after ${timeoutMs}ms`)), timeoutMs)
+    ),
+  ]);
+}
+
+/**
  * MCP Server configuration
  */
 interface McpServerConfig {
@@ -33,6 +60,8 @@ function getServerConfig(serverType: McpServerType, apiKey: string): McpServerCo
 
   switch (serverType) {
     case McpServerType.Vision:
+    case McpServerType.Zread:
+      // Both Vision and ZRead are available through the MCP server
       return {
         command: 'npx',
         args: ['-y', '@z_ai/mcp-server'],
@@ -44,9 +73,6 @@ function getServerConfig(serverType: McpServerType, apiKey: string): McpServerCo
     case McpServerType.Read:
       // HTTP-based - handled differently
       throw new Error('Read is HTTP-based, not stdio');
-    case McpServerType.Zread:
-      // HTTP-based - handled differently
-      throw new Error('Zread is HTTP-based, not stdio');
     default:
       throw new Error(`Unknown server type: ${serverType}`);
   }
@@ -66,6 +92,7 @@ export class McpClientWrapper {
    * @param serverType - Type of MCP server to connect to
    * @param apiKey - Z.AI API key for authentication
    * @throws Error if server type is HTTP-based (not stdio)
+   * @throws Error if connection times out
    */
   async connect(serverType: McpServerType, apiKey: string): Promise<void> {
     const config = getServerConfig(serverType, apiKey);
@@ -86,7 +113,13 @@ export class McpClientWrapper {
       env: config.env,
     });
 
-    await this.client.connect(this.transport);
+    // Wrap connection with timeout to prevent indefinite hangs
+    await withTimeout(
+      this.client.connect(this.transport),
+      MCP_CONNECTION_TIMEOUT,
+      `MCP server connection (${serverType})`
+    );
+
     this.connected = true;
   }
 
@@ -102,13 +135,19 @@ export class McpClientWrapper {
    * List available tools from the connected server
    * @returns Array of available tool descriptors
    * @throws Error if not connected to MCP server
+   * @throws Error if operation times out
    */
   async listTools(): Promise<McpTool[]> {
     if (!this.client || !this.connected) {
       throw new Error('Not connected to MCP server');
     }
 
-    const response = await this.client.listTools();
+    const response = await withTimeout(
+      this.client.listTools(),
+      MCP_TOOL_TIMEOUT,
+      'list tools'
+    );
+
     return response.tools.map((tool) => ({
       name: tool.name,
       description: tool.description,
@@ -122,16 +161,21 @@ export class McpClientWrapper {
    * @param args - Arguments to pass to the tool
    * @returns Tool call result with content and error status
    * @throws Error if not connected to MCP server
+   * @throws Error if operation times out
    */
   async callTool(name: string, args: Record<string, unknown>): Promise<McpToolResult> {
     if (!this.client || !this.connected) {
       throw new Error('Not connected to MCP server');
     }
 
-    const response = await this.client.callTool({
-      name,
-      arguments: args,
-    });
+    const response = await withTimeout(
+      this.client.callTool({
+        name,
+        arguments: args,
+      }),
+      MCP_TOOL_TIMEOUT,
+      `tool call: ${name}`
+    );
 
     return {
       content: response.content,
@@ -312,17 +356,31 @@ export async function callWebReader(
 }
 
 /**
- * Call ZRead (GitHub repo search) - Not available via main API
- * This feature requires MCP server access which may need additional setup
+ * Call ZRead (GitHub repo search) via MCP server
+ * Connects to the MCP server and calls the appropriate ZRead tool
+ * @param apiKey - Z.AI API key for authentication
+ * @param method - Either 'search_doc' or 'get_repo_structure'
+ * @param args - Method-specific arguments
+ * @returns Tool call result from ZRead
  */
 export async function callZRead(
-  _apiKey: string,
-  _method: 'search_doc' | 'get_repo_structure',
-  _args: Record<string, unknown>
+  apiKey: string,
+  method: 'search_doc' | 'get_repo_structure',
+  args: Record<string, unknown>
 ): Promise<unknown> {
-  // ZRead functionality is only available through the MCP server
-  // The main Z.AI API doesn't have a direct endpoint for GitHub repo search
-  throw new Error('ZRead (GitHub repo search) is not currently available through the direct API. This feature requires MCP server access which may need additional configuration or service plan activation.');
+  const client = await connectToServer(McpServerType.Zread, apiKey);
+
+  const toolName = method === 'search_doc' ? 'zai.zread.search_doc' : 'zai.zread.get_repo_structure';
+
+  const result = await client.callTool(toolName, args);
+
+  await client.disconnect();
+
+  if (result.isError) {
+    throw new Error(`ZRead ${method} failed: ${JSON.stringify(result.content)}`);
+  }
+
+  return result.content;
 }
 
 /**

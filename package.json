@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "zai-cli": "./bin/zai-cli"
+    "zai-cli": "bin/zai-cli"
   },
   "files": [
     "dist",
@@ -41,10 +41,10 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.6",
-    "typescript": "^5.7.3",
-    "tsx": "^4.19.2",
-    "vitest": "^2.1.8",
     "eslint": "^9.18.0",
-    "typescript-eslint": "^8.20.0"
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^4.0.16"
   }
 }

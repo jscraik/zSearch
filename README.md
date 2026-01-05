@@ -73,12 +73,12 @@ zai-cli vision video <video> "<prompt>"       # Analyze video
 
 ### Search
 ```bash
-zai-cli search "<query>" [--count <n>] [--language <code>]
+zai-cli search "<query>" [--count <n>] [--language <code>] [--time-range <range>]
 ```
 
 ### Read
 ```bash
-zai-cli read <url> [--with-images-summary] [--no-gfm]
+zai-cli read <url> [--with-images-summary] [--no-gfm] [--retain-images]
 ```
 
 ### Repo
@@ -86,6 +86,8 @@ zai-cli read <url> [--with-images-summary] [--no-gfm]
 zai-cli repo tree <owner/repo> [--path <dir>] [--depth <n>]
 zai-cli repo search <owner/repo> "<query>" [--language <code>]
 ```
+
+**Note:** These commands connect to the Z.AI MCP server to access GitHub repository exploration capabilities via the ZRead tools.
 
 ### MCP Tools
 ```bash

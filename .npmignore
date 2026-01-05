@@ -1,0 +1,36 @@
+# Source files
+src/
+test/
+examples/
+
+# Config files
+tsconfig.json
+.eslintrc*
+.prettierrc*
+
+# Development files
+*.ts
+!*.d.ts
+
+# Documentation (keeping only essentials)
+CONTRIBUTING.md
+CHANGELOG.md
+
+# Git
+.git/
+.gitignore
+.github/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+.DS_Store
+*.log
+node_modules/
+coverage/
+.env
+.env.*

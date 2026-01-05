@@ -3,7 +3,7 @@
  * File-based caching with TTL for tool discovery results
  */
 
-import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, unlink, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { CacheEntry } from '../types/index.js';
@@ -105,10 +105,31 @@ export async function set<T>(
 
 /**
  * Clear all cache entries
+ * Removes all JSON cache files from the cache directory
  */
 export async function clear(config: Config): Promise<void> {
-  // Use cache directory directly - will expand later
-  // For now, this is a placeholder
+  // If cache directory doesn't exist, nothing to clear
+  if (!existsSync(config.cache.dir)) {
+    return;
+  }
+
+  try {
+    // Read all files in cache directory
+    const files = await readdir(config.cache.dir);
+
+    // Delete only .json cache files (leave other files alone)
+    const deletePromises = files
+      .filter(file => file.endsWith('.json'))
+      .map(file => unlink(join(config.cache.dir, file)));
+
+    await Promise.all(deletePromises);
+  } catch (error) {
+    // If directory doesn't exist or other error, silently fail
+    // This is a cache clearing operation, failures are not critical
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+  }
 }
 
 /**
