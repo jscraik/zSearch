@@ -1,7 +1,7 @@
 #!/bin/bash
-# Basic zai-cli Usage Examples
+# Basic zSearch Usage Examples
 #
-# This script demonstrates common usage patterns for zai-cli.
+# This script demonstrates common usage patterns for zsearch (Z.AI CLI and MCP server).
 # Make sure to set your Z_AI_API_KEY environment variable before running.
 #
 # Setup:
@@ -11,7 +11,7 @@
 
 set -e  # Exit on error
 
-echo "=== Z.AI CLI - Basic Usage Examples ==="
+echo "=== zSearch - Basic Usage Examples ==="
 echo ""
 
 # Check if API key is set
@@ -29,7 +29,7 @@ echo ""
 # =============================================
 echo "1. Web Search"
 echo "   Searching for 'TypeScript best practices'..."
-zai-cli search "TypeScript best practices" --count 3
+zsearch search "TypeScript best practices" --count 3
 echo ""
 
 # =============================================
@@ -37,7 +37,7 @@ echo ""
 # =============================================
 echo "2. Web Reader"
 echo "   Reading https://example.com..."
-zai-cli read https://example.com
+zsearch read https://example.com
 echo ""
 
 # =============================================
@@ -45,7 +45,7 @@ echo ""
 # =============================================
 echo "3. GitHub Repo Tree"
 echo "   Exploring facebook/react structure (depth 2)..."
-zai-cli repo tree facebook/react --depth 2
+zsearch repo tree facebook/react --depth 2
 echo ""
 
 # =============================================
@@ -53,7 +53,7 @@ echo ""
 # =============================================
 echo "4. MCP Tools Discovery"
 echo "   Listing available vision tools..."
-zai-cli tools --filter vision
+zsearch tools --filter vision
 echo ""
 
 # =============================================
@@ -61,7 +61,7 @@ echo ""
 # =============================================
 echo "5. Tool Details"
 echo "   Getting details for web_search_prime tool..."
-zai-cli tool web_search_prime
+zsearch tool web_search_prime
 echo ""
 
 # =============================================
@@ -69,7 +69,7 @@ echo ""
 # =============================================
 echo "6. Doctor Health Check"
 echo "   Running diagnostics..."
-zai-cli doctor
+zsearch doctor
 echo ""
 
 # =============================================
@@ -77,15 +77,23 @@ echo ""
 # =============================================
 echo "7. JSON Output Mode"
 echo "   Search with JSON wrapper..."
-zai-cli search "cli tools" --count 1 --json
+zsearch search "cli tools" --count 1 --json
 echo ""
 
 # =============================================
-# 8. Custom Timeout
+# 8. Chat with AI
 # =============================================
-echo "8. Custom Timeout"
+echo "8. Chat with GLM-4"
+echo "   Asking a simple question..."
+zsearch chat "What is 2+2? Just the number."
+echo ""
+
+# =============================================
+# 9. Custom Timeout
+# =============================================
+echo "9. Custom Timeout"
 echo "   Search with 60 second timeout..."
-zai-cli --timeout 60000 search "async programming"
+zsearch --timeout 60000 search "async programming"
 echo ""
 
 echo "=== Examples Complete ==="
@@ -93,5 +101,8 @@ echo ""
 echo "For more information, see:"
 echo "  - README.md: Full command reference"
 echo "  - CONTRIBUTING.md: Development guide"
-echo "  - Run 'zai-cli --help' for command help"
-echo "  - Run 'zai-cli <command> --help' for command-specific help"
+echo "  - Run 'zsearch --help' for command help"
+echo "  - Run 'zsearch <command> --help' for command-specific options"
+echo ""
+echo "To run as MCP server:"
+echo "  - zsearch mcp-server"

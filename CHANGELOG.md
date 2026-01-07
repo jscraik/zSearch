@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **MCP server mode** for headless operation via `zsearch mcp-server`
+- **Chat and code generation tools** exposed via MCP protocol
+- **Integration with Z.AI Coding API** (glm-4.7, glm-4.5-air)
+- **Backward compatibility** - `zai-cli` command alias supported
+
+### Changed
+- **Package renamed** from `@brainwav/zai-cli` to `@brainwav/zsearch`
+- **Primary command** changed from `zai-cli` to `zsearch`
+- **Repository renamed** from `zai-cli` to `zSearch`
+- **Cache directory** changed from `~/.cache/zai-cli` to `~/.cache/zsearch`
+- **Config directory** changed from `~/.config/zai-cli` to `~/.config/zsearch`
+- **Search family** - Part of rSearch/wSearch/zSearch naming convention
+
+### Added (from previous unreleased)
 - **Setup command** for Claude Code integration via environment variables
 - **Codex environment setup documentation** with ~/codex/.env configuration
 - **Z.AI branding** with official logo in README
@@ -18,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Timeout protection** for MCP server connections (30s) and tool calls (2min)
 - **Request ID generation** for distributed tracing and debugging
 
-### Changed
+### Changed (from previous unreleased)
 - **API integration:** Switched from MCP-specific endpoints to main Z.AI API endpoints
   - Web search now uses `/api/paas/v4/web_search` with standard Bearer auth
   - Web reader now uses `/api/paas/v4/reader` with standard Bearer auth
@@ -30,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced README with detailed troubleshooting guide and agent integration section
 - **Updated vitest** to latest version, fixing 5 moderate security vulnerabilities
 
-### Fixed
+### Fixed (from previous unreleased)
 - API authentication by using correct Z.AI endpoints with Bearer token
 - Doctor command to distinguish between auth failures and balance issues
 - TypeScript type errors with ErrorCode casting across all commands
@@ -43,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-01-05
 
 ### Added
-- Initial release of zai-cli
+- Initial release (as zai-cli)
 - **Vision commands:**
   - `vision analyze` - General image analysis
   - `vision ocr` - Text extraction from images
@@ -73,5 +87,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exit codes reference
 - MIT License
 
-[Unreleased]: https://github.com/jscraik/zai-cli/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/jscraik/zai-cli/releases/tag/v0.1.0
+[Unreleased]: https://github.com/jscraik/zSearch/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/jscraik/zSearch/releases/tag/v0.1.0

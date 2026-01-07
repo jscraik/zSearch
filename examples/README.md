@@ -1,12 +1,12 @@
-# zai-cli Examples
+# zSearch Examples
 
-This directory contains usage examples for the zai-cli tool.
+This directory contains usage examples for the zsearch tool (Z.AI CLI and MCP server).
 
 ## Available Examples
 
 ### [basic-usage.sh](./basic-usage.sh)
 
-Demonstrates core zai-cli functionality:
+Demonstrates core zsearch functionality:
 
 - Web search with result limiting
 - Web page reading and parsing
@@ -58,13 +58,13 @@ if [ -z "$Z_AI_API_KEY" ]; then
 fi
 
 # Your example commands here
-zai-cli search "example query"
+zsearch search "example query"
 ```
 
 ### TypeScript Example (for code mode)
 
 ```typescript
-// example.ts - Example TypeScript chain for zai-cli code mode
+// example.ts - Example TypeScript chain for zsearch code mode
 
 // This example demonstrates...
 const searchResults = await search("TypeScript patterns", { count: 5 });
@@ -73,9 +73,31 @@ console.log(`Found ${searchResults.length} results`);
 // Process results...
 ```
 
+## MCP Server Mode Examples
+
+### Running as Headless MCP Server
+
+```bash
+# Start the MCP server
+zsearch mcp-server
+
+# Or with environment variables
+Z_AI_API_KEY="your-key" zsearch mcp-server
+```
+
+### Testing MCP Server Directly
+
+```bash
+# List available tools
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | zsearch mcp-server
+
+# Call a tool
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"chat","arguments":{"message":"Hello"}}}' | zsearch mcp-server
+```
+
 ## Need Help?
 
 - See [README.md](../README.md) for full command reference
 - See [CONTRIBUTING.md](../CONTRIBUTING.md) for development guide
-- Run `zai-cli --help` for command help
-- Run `zai-cli <command> --help` for command-specific options
+- Run `zsearch --help` for command help
+- Run `zsearch <command> --help` for command-specific options

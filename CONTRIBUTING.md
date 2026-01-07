@@ -1,6 +1,6 @@
-# Contributing to @brainwav/zai-cli
+# Contributing to @brainwav/zsearch
 
-Thank you for your interest in contributing! This document provides guidelines for contributing to the zai-cli project.
+Thank you for your interest in contributing! This document provides guidelines for contributing to the zsearch project (Z.AI CLI and MCP server).
 
 ## Table of Contents
 
@@ -26,14 +26,14 @@ Thank you for your interest in contributing! This document provides guidelines f
 2. Clone your fork locally:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/zai-cli.git
-cd zai-cli
+git clone https://github.com/YOUR_USERNAME/zSearch.git
+cd zSearch
 ```
 
 3. Add the original repository as upstream:
 
 ```bash
-git remote add upstream https://github.com/jscraik/zai-cli.git
+git remote add upstream https://github.com/jscraik/zSearch.git
 ```
 
 ### Install Dependencies
@@ -68,17 +68,18 @@ npm run dev -- doctor
 ## Project Structure
 
 ```
-zai-cli/
+zSearch/
 ├── bin/              # Executable entry point
 ├── src/
 │   ├── commands/     # CLI command implementations
-│   ├── lib/          # Shared utilities (config, output, cache, MCP client)
+│   ├── lib/          # Shared utilities (config, output, cache, MCP client/server)
 │   ├── types/        # TypeScript type definitions
 │   ├── cli.ts        # Main CLI entry point
 │   └── index.ts      # Package entry point (public API)
 ├── schemas/          # JSON output schemas
 ├── examples/         # Usage examples
 ├── dist/             # Compiled JavaScript (generated)
+├── brand/            # Brand assets (logo, guidelines)
 └── package.json      # Project metadata
 ```
 
@@ -242,7 +243,7 @@ Closes #123
 fix(config): handle missing XDG_CONFIG_HOME gracefully
 
 Previously assumed XDG_CONFIG_HOME was always set.
-Now falls back to ~/.config/zai-cli on Linux.
+Now falls back to ~/.config/zsearch on Linux.
 ```
 
 ```
@@ -323,4 +324,4 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ---
 
-Thank you for contributing to zai-cli!
+Thank you for contributing to zsearch!
